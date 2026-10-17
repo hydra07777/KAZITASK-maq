@@ -30,44 +30,47 @@
   <div class="app-shell">
 
     <!-- ============ Sidebar ============ -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
     <aside class="sidebar" id="sidebar" aria-label="Navigation principale">
-      <div class="brand">
+      <div class="brand" data-tooltip="KAZITASK">
         <div class="brand-mark" aria-hidden="true">
           <i data-lucide="check-square" class="icon" style="width:20px;height:20px;"></i>
         </div>
         <div class="brand-name">KAZI<span>TASK</span></div>
       </div>
 
-      <nav>
+      <nav style="width:100%; display:flex; flex-direction:column; align-items:center;">
         <div class="nav-section-label">Aujourd'hui</div>
         <ul class="nav-list">
-          <li class="nav-item active" data-view="journal">
+          <li class="nav-item active" data-view="journal" data-tooltip="Journal">
             <i data-lucide="layout-list" class="icon"></i><span>Journal</span>
           </li>
-          <li class="nav-item" data-view="metrics">
+          <li class="nav-item" data-view="metrics" data-tooltip="Performance">
             <i data-lucide="bar-chart-3" class="icon"></i><span>Performance</span>
           </li>
-          <li class="nav-item" data-view="export">
+          <li class="nav-item" data-view="export" data-tooltip="Rapport">
             <i data-lucide="file-down" class="icon"></i><span>Rapport</span>
           </li>
         </ul>
 
         <div class="nav-section-label" style="margin-top:24px;">Outils</div>
         <ul class="nav-list">
-          <li class="nav-item" id="navImport">
+          <li class="nav-item" id="navImport" data-tooltip="Importer JSON">
             <i data-lucide="upload" class="icon"></i><span>Importer JSON</span>
           </li>
-          <li class="nav-item" id="navExport">
+          <li class="nav-item" id="navExport" data-tooltip="Sauvegarder">
             <i data-lucide="download" class="icon"></i><span>Sauvegarder</span>
           </li>
-          <li class="nav-item" id="navSettings">
+          <li class="nav-item" id="navSettings" data-tooltip="Paramètres">
             <i data-lucide="settings" class="icon"></i><span>Paramètres</span>
           </li>
         </ul>
       </nav>
 
       <div class="sidebar-footer">
-        <div class="avatar" id="avatarInitials">IT</div>
+        <div class="avatar" id="avatarBtn" data-tooltip="Mon profil" tabindex="0" role="button" aria-label="Ouvrir les paramètres">
+          <span id="avatarInitials">IT</span>
+        </div>
         <div class="user-info">
           <div class="name" id="userName">Technicien IT</div>
           <div class="role" id="userRole">Support &amp; Infrastructure</div>

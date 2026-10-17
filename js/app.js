@@ -42,8 +42,8 @@ function init() {
   // Sidebar : reflet de l'utilisateur
   document.getElementById('userName').textContent = state.settings.name;
   document.getElementById('userRole').textContent = state.settings.role;
-  document.getElementById('avatarInitials').textContent =
-    initials(state.settings.name);
+  const initialsEl = document.getElementById('avatarInitials');
+  if (initialsEl) initialsEl.textContent = initials(state.settings.name);
 
   // Pré-remplir durée par défaut
   const defEst = document.getElementById('fEst');
@@ -251,7 +251,8 @@ function handleSettingsSubmit(e) {
   // Refresh sidebar
   document.getElementById('userName').textContent = state.settings.name;
   document.getElementById('userRole').textContent = state.settings.role;
-  document.getElementById('avatarInitials').textContent = initials(state.settings.name);
+  const initialsEl = document.getElementById('avatarInitials');
+  if (initialsEl) initialsEl.textContent = initials(state.settings.name);
 
   closeModal('settingsModal');
   renderAll();
@@ -374,11 +375,42 @@ function bindEvents() {
   document.getElementById('navExport').addEventListener('click', exportBackup);
   document.getElementById('navSettings').addEventListener('click', openSettingsModal);
 
+  // Avatar : ouvre les paramètres
+  const avatarBtn = document.getElementById('avatarBtn');
+  if (avatarBtn) {
+    avatarBtn.addEventListener('click', openSettingsModal);
+    avatarBtn.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openSettingsModal();
+      }
+    });
+  }
+
   document.getElementById('importFile').addEventListener('change', handleImportFile);
 
-  // Mobile menu
-  document.getElementById('menuToggle').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('is-open');
+  // Mobile menu : toggle + backdrop
+  const sidebarEl     = document.getElementById('sidebar');
+  const backdropEl    = document.getElementById('sidebarBackdrop');
+  const menuToggleBtn = document.getElementById('menuToggle');
+  const closeDrawer = () => {
+    sidebarEl.classList.remove('is-open');
+    if (backdropEl) backdropEl.classList.remove('is-open');
+  };
+  if (menuToggleBtn) {
+    menuToggleBtn.addEventListener('click', () => {
+      const opening = !sidebarEl.classList.contains('is-open');
+      sidebarEl.classList.toggle('is-open', opening);
+      if (backdropEl) backdropEl.classList.toggle('is-open', opening);
+    });
+  }
+  if (backdropEl) backdropEl.addEventListener('click', closeDrawer);
+
+  // Fermer le drawer si on clique sur un item de nav en mobile
+  sidebarEl.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      if (window.matchMedia('(max-width: 768px)').matches) closeDrawer();
+    });
   });
 }
 
