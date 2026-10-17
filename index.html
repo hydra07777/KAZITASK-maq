@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#0A0A0F" />
+  <title>KAZITASK — Journal de tâches IT</title>
+  <meta name="description" content="Journal quotidien pour professionnels IT : consignez vos tâches, calculez votre score, exportez votre rapport." />
+
+  <!-- Polices -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Icônes -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- PDF (utilisé à l'étape 3) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- Feuille de style -->
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- Icône SVG inline (favicon) -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%237C3AED'/%3E%3Cpath d='M9 12h14M9 16h10M9 20h6' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <div class="app-shell">
+
+    <!-- ============ Sidebar ============ -->
+    <aside class="sidebar" id="sidebar" aria-label="Navigation principale">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <i data-lucide="check-square" class="icon" style="width:20px;height:20px;"></i>
+        </div>
+        <div class="brand-name">KAZI<span>TASK</span></div>
+      </div>
+
+      <nav>
+        <div class="nav-section-label">Aujourd'hui</div>
+        <ul class="nav-list">
+          <li class="nav-item active" data-view="journal">
+            <i data-lucide="layout-list" class="icon"></i><span>Journal</span>
+          </li>
+          <li class="nav-item" data-view="metrics">
+            <i data-lucide="bar-chart-3" class="icon"></i><span>Performance</span>
+          </li>
+          <li class="nav-item" data-view="export">
+            <i data-lucide="file-down" class="icon"></i><span>Rapport</span>
+          </li>
+        </ul>
+
+        <div class="nav-section-label" style="margin-top:24px;">Outils</div>
+        <ul class="nav-list">
+          <li class="nav-item" id="navImport">
+            <i data-lucide="upload" class="icon"></i><span>Importer JSON</span>
+          </li>
+          <li class="nav-item" id="navExport">
+            <i data-lucide="download" class="icon"></i><span>Sauvegarder</span>
+          </li>
+          <li class="nav-item" id="navSettings">
+            <i data-lucide="settings" class="icon"></i><span>Paramètres</span>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="avatar" id="avatarInitials">IT</div>
+        <div class="user-info">
+          <div class="name" id="userName">Technicien IT</div>
+          <div class="role" id="userRole">Support &amp; Infrastructure</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============ Main ============ -->
+    <main class="main">
+
+      <header class="page-header">
+        <div>
+          <h1 class="page-title" id="pageTitle">Journal du jour</h1>
+          <p class="page-subtitle" id="pageSubtitle">— consignez vos tâches, mesurez votre performance</p>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn btn-icon btn-secondary" id="menuToggle" aria-label="Ouvrir le menu" style="display:none;">
+            <i data-lucide="menu" class="icon"></i>
+          </button>
+          <button class="btn btn-secondary" id="prevDay" aria-label="Jour précédent">
+            <i data-lucide="chevron-left" class="icon"></i>
+          </button>
+          <div class="btn btn-secondary" id="todayLabel" style="cursor:default;">
+            <i data-lucide="calendar" class="icon"></i>
+            <span id="todayText">Aujourd'hui</span>
+          </div>
+          <button class="btn btn-secondary" id="nextDay" aria-label="Jour suivant">
+            <i data-lucide="chevron-right" class="icon"></i>
+          </button>
+          <button class="btn btn-primary" id="addTaskBtn">
+            <i data-lucide="plus" class="icon"></i>Nouvelle tâche
+            <span class="kbd" style="margin-left:4px;">N</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- ===== Métriques ===== -->
+      <section class="metrics-grid" aria-label="Indicateurs du jour">
+        <div class="metric-card">
+          <div class="metric-head">
+            <span class="metric-label">Tâches</span>
+            <div class="metric-icon"><i data-lucide="check-square" class="icon"></i></div>
+          </div>
+          <div class="metric-value mono" id="metricTotal">0</div>
+          <div class="metric-foot">
+            <span id="metricDone">0 terminées</span> · <span id="metricOpen">0 en cours</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-head">
+            <span class="metric-label">Temps travaillé</span>
+            <div class="metric-icon"><i data-lucide="timer" class="icon"></i></div>
+          </div>
+          <div class="metric-value mono" id="metricTime">0h00</div>
+          <div class="metric-foot">
+            Estimé&nbsp;: <span id="metricEst" class="mono">0h00</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-head">
+            <span class="metric-label">Taux de résolution</span>
+            <div class="metric-icon"><i data-lucide="target" class="icon"></i></div>
+          </div>
+          <div class="metric-value mono" id="metricResolve">0%</div>
+          <div class="metric-foot">Terminées / total</div>
+        </div>
+
+        <div class="metric-card score-card">
+          <div class="metric-head">
+            <span class="metric-label">Score</span>
+            <span class="score-pill" id="scorePill">
+              <span class="dot"></span><span id="scoreLabel">—</span>
+            </span>
+          </div>
+          <div class="metric-value mono" id="metricScore">—</div>
+          <div class="metric-foot">Calculé sur la formule pondérée (40/30/30)</div>
+        </div>
+      </section>
+
+      <!-- ===== Contenu principal : journal + aside ===== -->
+      <section class="content-grid">
+
+        <!-- Journal -->
+        <div>
+          <div class="task-toolbar">
+            <div class="task-filters" role="tablist" aria-label="Filtres tâches">
+              <button class="filter-chip active" data-filter="all" role="tab">
+                Toutes <span id="countAll" class="mono" style="opacity:0.6;">0</span>
+              </button>
+              <button class="filter-chip" data-filter="encours" role="tab">
+                En cours <span id="countEncours" class="mono" style="opacity:0.6;">0</span>
+              </button>
+              <button class="filter-chip" data-filter="termine" role="tab">
+                Terminées <span id="countTermine" class="mono" style="opacity:0.6;">0</span>
+              </button>
+              <button class="filter-chip" data-filter="bloque" role="tab">
+                Bloquées <span id="countBloque" class="mono" style="opacity:0.6;">0</span>
+              </button>
+              <button class="filter-chip" data-filter="critique" role="tab">
+                Critiques <span id="countCritique" class="mono" style="opacity:0.6;">0</span>
+              </button>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-ghost btn-icon" id="searchToggle" aria-label="Rechercher">
+                <i data-lucide="search" class="icon"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="searchBar" hidden style="margin-bottom:12px;">
+            <input type="search" id="searchInput" class="input" placeholder="Rechercher dans le titre ou les notes..." aria-label="Rechercher" />
+          </div>
+
+          <div id="taskList" class="task-list" aria-live="polite"></div>
+
+          <div id="emptyState" class="empty" hidden>
+            <div class="empty-icon">
+              <i data-lucide="inbox" style="width:24px;height:24px;"></i>
+            </div>
+            <div class="empty-title">Aucune tâche pour ce filtre</div>
+            <div class="empty-sub">Ajoutez une tâche avec <span class="kbd">N</span> ou le bouton « Nouvelle tâche ».</div>
+          </div>
+        </div>
+
+        <!-- Aside -->
+        <aside class="side-stack">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Raccourcis clavier</h3>
+            </div>
+            <div class="shortcut"><span class="shortcut-label"><i data-lucide="plus" class="icon"></i>Nouvelle tâche</span><span class="kbd">N</span></div>
+            <div class="shortcut"><span class="shortcut-label"><i data-lucide="file-down" class="icon"></i>Ouvrir l'export</span><span class="kbd">E</span></div>
+            <div class="shortcut"><span class="shortcut-label"><i data-lucide="save" class="icon"></i>Enregistrer</span><span class="kbd">Ctrl ⏎</span></div>
+            <div class="shortcut"><span class="shortcut-label"><i data-lucide="x" class="icon"></i>Fermer</span><span class="kbd">Échap</span></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Activité récente</h3>
+            </div>
+            <div id="recentActivity">
+              <p style="color:var(--text-muted); font-size:12px; margin:0;">
+                Vos modifications apparaîtront ici.
+              </p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Légende</h3>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px; font-size:12px;">
+              <div><span class="badge badge-pri critique"><span class="dot"></span>Critique</span> Traité en priorité absolue</div>
+              <div><span class="badge badge-pri haute"><span class="dot"></span>Haute</span> À résoudre sous 4h (SLA)</div>
+              <div><span class="badge badge-pri moyenne"><span class="dot"></span>Moyenne</span> À traiter dans la journée</div>
+              <div><span class="badge badge-pri basse"><span class="dot"></span>Basse</span> File d'attente</div>
+            </div>
+          </div>
+        </aside>
+
+      </section>
+    </main>
+  </div>
+
+  <!-- ============ Modal : ajout / édition ============ -->
+  <div class="modal-backdrop" id="taskModal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="taskModalTitle">Nouvelle tâche</h2>
+        <button class="icon-btn" data-close-modal aria-label="Fermer">
+          <i data-lucide="x" class="icon"></i>
+        </button>
+      </div>
+      <form id="taskForm" novalidate>
+        <div class="modal-body">
+          <div class="field-grid">
+            <div class="field full">
+              <label class="field-label" for="fTitle">Titre *</label>
+              <input class="input" id="fTitle" name="title" type="text" required maxlength="120" autocomplete="off" placeholder="Ex. Ticket #4092 — Panne switch" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="fCat">Catégorie</label>
+              <select class="select" id="fCat" name="cat" required></select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="fPri">Priorité</label>
+              <select class="select" id="fPri" name="pri" required></select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="fStatus">Statut</label>
+              <select class="select" id="fStatus" name="status" required></select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="fImpact">Impact utilisateur</label>
+              <select class="select" id="fImpact" name="impact">
+                <option value="false">Non</option>
+                <option value="true">Oui</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="fEst">Durée estimée (min)</label>
+              <input class="input mono" id="fEst" name="est" type="number" min="0" step="5" value="30" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="fReal">Durée réelle (min)</label>
+              <input class="input mono" id="fReal" name="real" type="number" min="0" step="5" value="30" />
+            </div>
+            <div class="field full">
+              <label class="field-label" for="fDown">Temps d'arrêt / interruption (min)</label>
+              <input class="input mono" id="fDown" name="down" type="number" min="0" step="5" value="0" />
+              <span class="field-hint">Renseigné uniquement si « Impact utilisateur » = Oui</span>
+            </div>
+            <div class="field full">
+              <label class="field-label" for="fNote">Notes techniques / Solution appliquée</label>
+              <textarea class="textarea" id="fNote" name="note" placeholder="Décrivez brièvement la cause et la résolution..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" data-close-modal>Annuler</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="save" class="icon"></i>Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ Modal : export ============ -->
+  <div class="modal-backdrop" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
+    <div class="modal" style="width: min(640px, 100%);">
+      <div class="modal-header">
+        <h2 class="modal-title" id="exportModalTitle">Rapport de fin de journée</h2>
+        <button class="icon-btn" data-close-modal aria-label="Fermer">
+          <i data-lucide="x" class="icon"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="reportSummary" style="margin-bottom:16px;"></div>
+        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;">
+          <button class="btn btn-secondary" id="exportMd">
+            <i data-lucide="file-text" class="icon"></i>Markdown (.md)
+          </button>
+          <button class="btn btn-secondary" id="exportCsv">
+            <i data-lucide="table" class="icon"></i>CSV (.csv)
+          </button>
+          <button class="btn btn-secondary" id="exportJson">
+            <i data-lucide="braces" class="icon"></i>JSON (.json)
+          </button>
+          <button class="btn btn-primary" id="exportPdf">
+            <i data-lucide="file-down" class="icon"></i>PDF (.pdf)
+          </button>
+        </div>
+        <p style="margin-top:14px; color: var(--text-muted); font-size: 12px;">
+          Astuce : copiez le résumé Markdown dans Slack, Teams, Jira ou votre mail.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Modal : paramètres ============ -->
+  <div class="modal-backdrop" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="settingsModalTitle">Paramètres</h2>
+        <button class="icon-btn" data-close-modal aria-label="Fermer">
+          <i data-lucide="x" class="icon"></i>
+        </button>
+      </div>
+      <form id="settingsForm" novalidate>
+        <div class="modal-body">
+          <div class="field-grid">
+            <div class="field">
+              <label class="field-label" for="sName">Votre nom</label>
+              <input class="input" id="sName" type="text" placeholder="Ex. César" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="sRole">Poste / équipe</label>
+              <input class="input" id="sRole" type="text" placeholder="Ex. Support N2" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="sSlaC">SLA — Critique (h)</label>
+              <input class="input mono" id="sSlaC" type="number" min="0" step="0.5" value="4" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="sSlaH">SLA — Haute (h)</label>
+              <input class="input mono" id="sSlaH" type="number" min="0" step="0.5" value="8" />
+            </div>
+            <div class="field full">
+              <label class="field-label" for="sDefaultEst">Durée par défaut (min)</label>
+              <input class="input mono" id="sDefaultEst" type="number" min="5" step="5" value="30" />
+              <span class="field-hint">Pré-rempli lors de la création d'une tâche.</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" data-close-modal>Annuler</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="save" class="icon"></i>Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- File input caché pour import JSON -->
+  <input type="file" id="importFile" accept="application/json,.json" hidden />
+
+  <!-- Toasts -->
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Scripts (ES modules) -->
+  <script type="module" src="js/app.js"></script>
+
+  <!-- SEED DE DÉMO (uniquement quand ?demo=1 et localStorage vide) -->
+  <script>
+    (function () {
+      try {
+        if (!new URLSearchParams(location.search).has('demo')) return;
+        if (localStorage.getItem('kazitask.v1')) return;
+        const today = new Date();
+        const iso = (d) => d.toISOString().slice(0,10);
+        const t = (overrides) => Object.assign({
+          id: 'demo-' + Math.random().toString(36).slice(2, 8),
+          date: iso(today),
+          createdAt: Date.now(), updatedAt: Date.now()
+        }, overrides);
+        const tasks = [
+          t({ title: "Ticket #4092 — Panne switch étage 3", cat: "Support N2", pri: "Critique", status: "Terminé", est: 60, real: 75, down: 0, impact: false, note: "Remplacement du module SFP, VLAN réappliqué." }),
+          t({ title: "Mise à jour Windows — parc compta (12 postes)", cat: "Maintenance", pri: "Moyenne", status: "En cours", est: 180, real: 90, down: 0, impact: false, note: "WSUS synchronisé, 7/12 postes terminés." }),
+          t({ title: "Audit logs serveur fichiers", cat: "Sécurité", pri: "Haute", status: "Bloqué", est: 60, real: 240, down: 30, impact: true, note: "En attente du retour RSSI sur la politique de rétention." }),
+          t({ title: "Daily stand-up équipe support", cat: "Réunion", pri: "Basse", status: "Terminé", est: 15, real: 20, down: 0, impact: false }),
+          t({ title: "Migration Exchange Online — phase 2/4", cat: "Infrastructure", pri: "Critique", status: "En cours", est: 240, real: 180, down: 0, impact: false, note: "Configuration des flux en cours." }),
+          t({ title: "Script PowerShell — export inventaire AD", cat: "Développement", pri: "Moyenne", status: "Terminé", est: 90, real: 60, down: 0, impact: false })
+        ];
+        localStorage.setItem('kazitask.v1', JSON.stringify({ tasks, version: 1 }));
+        localStorage.setItem('kazitask.settings.v1', JSON.stringify({
+          name: "César Paysayo", role: "Support N2 / Infra",
+          sla: { critique: 4, haute: 8 }, defaultEst: 30
+        }));
+      } catch (e) { console.warn('seed demo failed', e); }
+    })();
+  </script>
+</body>
+</html>
