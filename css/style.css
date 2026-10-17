@@ -748,24 +748,29 @@ a { color: var(--accent-light); text-decoration: none; }
   .content-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 768px) {
-  /* En mobile, la sidebar devient un drawer plein écran */
+  /* En mobile, la sidebar est une pilule glassy flottante, pas collée au bord */
   .sidebar {
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 260px;
-    border-radius: 0;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
-    border-left: none;
-    border-top: none;
-    border-bottom: none;
-    align-items: stretch;
-    padding: 20px 16px;
+    top: 12px;
+    left: 12px;
+    bottom: 12px;
+    width: min(280px, 86vw);
+    border-radius: var(--radius-xl);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 20px 14px;
     gap: 16px;
-    transform: translateX(-100%);
+    transform: translateX(calc(-100% - 24px));   /* cachée : pile en dehors du viewport */
     transition: transform var(--t-base);
+    /* Effet glass préservé */
+    background: rgba(15, 15, 22, 0.85);
+    backdrop-filter: blur(28px) saturate(160%);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    overflow-y: auto;
   }
-  .sidebar.is-open { transform: translateX(0); }
+  .sidebar.is-open {
+    transform: translateX(0);                   /* visible, flottante avec marges */
+  }
 
   /* En drawer, on rétablit le texte pour la lisibilité */
   .sidebar .brand { display: flex; justify-content: flex-start; padding: 0 4px; }
@@ -783,6 +788,7 @@ a { color: var(--accent-light); text-decoration: none; }
     font-weight: 500;
     font-size: 13px;
   }
+  .sidebar .nav-item:hover { transform: none; } /* pas d'effet translateX en drawer */
   .sidebar .nav-item span { display: inline; }
   .sidebar .nav-item:hover { background: var(--bg-card-hover); color: var(--text-primary); }
   .sidebar .nav-item.active::before { display: none; } /* pas d'indicateur rail en drawer */
@@ -794,7 +800,7 @@ a { color: var(--accent-light); text-decoration: none; }
     gap: 10px;
     padding: 12px;
     border-radius: var(--radius-md);
-    background: var(--bg-card);
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--border-subtle);
     justify-content: flex-start;
   }
@@ -806,7 +812,12 @@ a { color: var(--accent-light); text-decoration: none; }
   .field-grid { grid-template-columns: 1fr; }
   .metrics-grid { grid-template-columns: repeat(2, 1fr); }
   .page-title { font-size: 22px; }
-  .menu-toggle { display: inline-flex !important; }
+  #menuToggle {
+    display: inline-flex !important;
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    color: var(--text-primary);
+  }
 
   /* Backdrop pour le drawer mobile */
   .sidebar-backdrop {
@@ -814,12 +825,16 @@ a { color: var(--accent-light); text-decoration: none; }
     inset: 0;
     background: rgba(0,0,0,0.5);
     backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     z-index: 49;
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--t-base);
   }
   .sidebar-backdrop.is-open { opacity: 1; pointer-events: auto; }
+
+  /* Empêcher le scroll du body quand le drawer est ouvert */
+  body.drawer-open { overflow: hidden; }
 }
 @media (max-width: 480px) {
   .metrics-grid { grid-template-columns: 1fr; }
@@ -833,6 +848,7 @@ a { color: var(--accent-light); text-decoration: none; }
 }
 
 .menu-toggle { display: none; }
+#menuToggle { display: none; }
 
 /* Scrollbar discrète */
 ::-webkit-scrollbar { width: 10px; height: 10px; }

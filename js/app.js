@@ -389,29 +389,56 @@ function bindEvents() {
 
   document.getElementById('importFile').addEventListener('change', handleImportFile);
 
-  // Mobile menu : toggle + backdrop
+  // Mobile menu : toggle + backdrop + scroll lock + fermeture sur resize
   const sidebarEl     = document.getElementById('sidebar');
   const backdropEl    = document.getElementById('sidebarBackdrop');
   const menuToggleBtn = document.getElementById('menuToggle');
-  const closeDrawer = () => {
-    sidebarEl.classList.remove('is-open');
-    if (backdropEl) backdropEl.classList.remove('is-open');
+
+  const setDrawerOpen = (open) => {
+    sidebarEl.classList.toggle('is-open', open);
+    if (backdropEl) backdropEl.classList.toggle('is-open', open);
+    document.body.classList.toggle('drawer-open', open);
+    // Accessibilité : aria-expanded + aria-hidden sur le backdrop
+    if (menuToggleBtn) menuToggleBtn.setAttribute('aria-expanded', String(open));
+    sidebarEl.setAttribute('aria-hidden', String(!open));
+    if (backdropEl) backdropEl.setAttribute('aria-hidden', String(!open));
+    // Focus le premier item de nav quand on ouvre
+    if (open) {
+      const firstItem = sidebarEl.querySelector('.nav-item');
+      if (firstItem) firstItem.focus({ preventScroll: true });
+    }
   };
+
   if (menuToggleBtn) {
+    menuToggleBtn.setAttribute('aria-expanded', 'false');
+    menuToggleBtn.setAttribute('aria-label', 'Ouvrir le menu');
     menuToggleBtn.addEventListener('click', () => {
-      const opening = !sidebarEl.classList.contains('is-open');
-      sidebarEl.classList.toggle('is-open', opening);
-      if (backdropEl) backdropEl.classList.toggle('is-open', opening);
+      const willOpen = !sidebarEl.classList.contains('is-open');
+      setDrawerOpen(willOpen);
     });
   }
-  if (backdropEl) backdropEl.addEventListener('click', closeDrawer);
 
-  // Fermer le drawer si on clique sur un item de nav en mobile
+  if (backdropEl) backdropEl.addEventListener('click', () => setDrawerOpen(false));
+
+  // Fermer avec Échap
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && sidebarEl.classList.contains('is-open')) {
+      setDrawerOpen(false);
+    }
+  });
+
+  // Fermer le drawer si on clique sur un item de nav
   sidebarEl.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => {
-      if (window.matchMedia('(max-width: 768px)').matches) closeDrawer();
+      if (window.matchMedia('(max-width: 768px)').matches) setDrawerOpen(false);
     });
   });
+
+  // Fermer le drawer automatiquement quand on repasse en desktop
+  const mql = window.matchMedia('(max-width: 768px)');
+  const onMqlChange = e => { if (!e.matches) setDrawerOpen(false); };
+  if (mql.addEventListener) mql.addEventListener('change', onMqlChange);
+  else mql.addListener(onMqlChange); // vieux navigateurs
 }
 
 /* ============================================================
