@@ -150,3 +150,49 @@ export function exceedsSla(task, slaHours) {
   if (!limit) return false;
   return (Number(task.real) || 0) > limit * 60;
 }
+
+/**
+ * Calcule des insights compacts pour la carte "Insights du jour".
+ * @param {Array} tasks
+ * @param {{critique:number, haute:number}} slaHours
+ * @returns {{
+ *   byCat: Array<{cat:string, count:number, pct:number}>,
+ *   toDo: Array<object>,            // tâches non terminées, triées par criticité
+ *   sla: {critique:{total:number, over:number}, haute:{total:number, over:number}}
+ * }}
+ */
+export function computeInsights(tasks, slaHours) {
+  // Répartition par catégorie
+  const catCount = {};
+  tasks.forEach(t => { catCount[t.cat] = (catCount[t.cat] || 0) + 1; });
+  const total = tasks.length;
+  const byCat = Object.entries(catCount)
+    .map(([cat, count]) => ({ cat, count, pct: total ? count / total : 0 }))
+    .sort((a, b) => b.count - a.count);
+
+  // À débloquer : tâches non terminées, triées par criticité puis temps réel
+  const priOrder = { 'Critique': 0, 'Haute': 1, 'Moyenne': 2, 'Basse': 3 };
+  const toDo = tasks
+    .filter(t => t.status !== 'Terminé')
+    .sort((a, b) => {
+      const pa = priOrder[a.pri] ?? 9;
+      const pb = priOrder[b.pri] ?? 9;
+      if (pa !== pb) return pa - pb;
+      return (b.real || 0) - (a.real || 0);
+    })
+    .slice(0, 4);
+
+  // SLA : pour Critique et Haute, combien dépassent
+  const sla = {
+    critique: { total: 0, over: 0 },
+    haute:    { total: 0, over: 0 }
+  };
+  tasks.forEach(t => {
+    if (t.pri !== 'Critique' && t.pri !== 'Haute') return;
+    if (t.status === 'Terminé') return;
+    sla[t.pri.toLowerCase()].total += 1;
+    if (exceedsSla(t, slaHours)) sla[t.pri.toLowerCase()].over += 1;
+  });
+
+  return { byCat, toDo, sla };
+}

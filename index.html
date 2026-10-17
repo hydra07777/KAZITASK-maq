@@ -195,6 +195,46 @@
             <div class="empty-title">Aucune tâche pour ce filtre</div>
             <div class="empty-sub">Ajoutez une tâche avec <span class="kbd">N</span> ou le bouton « Nouvelle tâche ».</div>
           </div>
+
+          <!-- ===== Carte "Insights du jour" : remplit l'espace libre ===== -->
+          <div id="insightsCard" class="insights-card" hidden>
+            <div class="card-header">
+              <h3 class="card-title">
+                <i data-lucide="sparkles" class="icon" style="width:16px;height:16px;color:var(--accent-light);"></i>
+                Insights du jour
+              </h3>
+              <span style="font-size:11px;color:var(--text-muted);">en un coup d'œil</span>
+            </div>
+
+            <div class="insights-grid">
+              <!-- Bloc 1 : répartition par catégorie -->
+              <div class="insight-block">
+                <div class="insight-head">
+                  <i data-lucide="layers" class="icon"></i>
+                  <span>Par catégorie</span>
+                </div>
+                <div id="insightByCat" class="insight-bars"></div>
+              </div>
+
+              <!-- Bloc 2 : prochaines à traiter -->
+              <div class="insight-block">
+                <div class="insight-head">
+                  <i data-lucide="zap" class="icon"></i>
+                  <span>À débloquer</span>
+                </div>
+                <ul id="insightTodo" class="insight-list"></ul>
+              </div>
+
+              <!-- Bloc 3 : SLA -->
+              <div class="insight-block">
+                <div class="insight-head">
+                  <i data-lucide="gauge" class="icon"></i>
+                  <span>SLA du jour</span>
+                </div>
+                <div id="insightSla" class="insight-sla"></div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Aside -->

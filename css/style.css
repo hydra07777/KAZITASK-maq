@@ -282,9 +282,8 @@ a { color: var(--accent-light); text-decoration: none; }
 /* ---- Main ---- */
 .main {
   padding: 28px 32px 48px 268px;        /* 220 sidebar + 16 gap + 32 breathing */
-  max-width: 1400px;
-  width: 100%;
-  margin: 0 auto;
+  max-width: 100%;                       /* remplit toute la largeur disponible */
+  margin: 0;
 }
 
 .page-header {
@@ -453,9 +452,203 @@ a { color: var(--accent-light); text-decoration: none; }
 
 .content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) 380px;
   gap: 20px;
+  align-items: start;
 }
+/* Sur grand écran, l'aside devient plus large pour remplir l'espace */
+@media (min-width: 1400px) {
+  .content-grid { grid-template-columns: minmax(0, 1fr) 420px; gap: 24px; }
+}
+@media (min-width: 1700px) {
+  .content-grid { grid-template-columns: minmax(0, 1fr) 460px; gap: 28px; }
+}
+/* Au-delà de 1900px, on plafonne le journal à 1200px (lisibilité) et
+   on étire l'aside pour qu'il remplisse l'espace restant. */
+@media (min-width: 1900px) {
+  .content-grid { grid-template-columns: minmax(0, 1200px) 1fr; gap: 32px; }
+}
+/* La colonne principale (gauche) doit s'étirer pour que ses enfants
+   puissent exploiter l'espace libre si la liste est courte */
+.content-grid > div:first-child {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============ Carte Insights ============ */
+
+.insights-card {
+  margin-top: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--t-base);
+}
+.insights-card:hover { border-color: var(--border-default); }
+.insights-card::before {
+  /* Halo violet subtil en haut à droite, comme les cartes métriques */
+  content: '';
+  position: absolute;
+  top: -60%;
+  right: -20%;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.15), transparent 65%);
+  pointer-events: none;
+}
+.insights-card .card-header {
+  position: relative;
+  margin-bottom: 16px;
+}
+.insights-card .card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 18px;
+  position: relative;
+}
+
+.insight-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.insight-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.insight-head .icon {
+  width: 14px;
+  height: 14px;
+  color: var(--accent-light);
+}
+
+/* Bloc 1 : barres par catégorie */
+.insight-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.insight-bar-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 30px;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.insight-bar-row .label {
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.insight-bar-row .bar-track {
+  height: 6px;
+  background: var(--bg-input);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.insight-bar-row .bar-fill {
+  height: 100%;
+  background: var(--grad-violet, var(--accent));
+  border-radius: var(--radius-full);
+  transition: width var(--t-slow);
+}
+.insight-bar-row .count {
+  text-align: right;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Bloc 2 : prochaines tâches à débloquer */
+.insight-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.insight-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-input);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  color: var(--text-secondary);
+  border-left: 2px solid var(--bloque);
+}
+.insight-list li.is-haute   { border-left-color: var(--haute); }
+.insight-list li.is-critique { border-left-color: var(--critique); }
+.insight-list li.is-encours { border-left-color: var(--encours); }
+.insight-list .title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.insight-list .pri-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.insight-list-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 8px 0;
+}
+
+/* Bloc 3 : SLA */
+.insight-sla {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.insight-sla-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 8px 10px;
+  background: var(--bg-input);
+  border-radius: var(--radius-md);
+}
+.insight-sla-row .pri-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+}
+.insight-sla-row .pri-name .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+}
+.insight-sla-row .sla-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+.sla-ok    { color: var(--termine); }
+.sla-over  { color: var(--critique); }
 
 /* ---- Liste des tâches ---- */
 .task-toolbar {
@@ -575,7 +768,15 @@ a { color: var(--accent-light); text-decoration: none; }
 
 /* ============ Sidebar droite : activité / raccourcis ============ */
 
-.side-stack { display: flex; flex-direction: column; gap: 16px; }
+.side-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 28px;            /* reste visible quand on scrolle le journal */
+  max-height: calc(100vh - 56px);   /* ne déborde pas de la fenêtre */
+  overflow-y: auto;    /* scroll interne si trop de cartes */
+}
 .shortcut {
   display: flex;
   align-items: center;
@@ -746,6 +947,8 @@ a { color: var(--accent-light); text-decoration: none; }
 
 @media (max-width: 1024px) {
   .content-grid { grid-template-columns: 1fr; }
+  .insights-grid { grid-template-columns: 1fr 1fr; }
+  .insights-grid > .insight-block:last-child { grid-column: 1 / -1; }
 }
 @media (max-width: 768px) {
   /* En mobile, la sidebar est une pilule glassy flottante, pas collée au bord */
@@ -845,6 +1048,9 @@ a { color: var(--accent-light); text-decoration: none; }
   #todayLabel { padding: 8px 10px; }
   #todayLabel span { display: none; }
   #todayLabel::after { content: "•"; }
+  /* Insights : 1 colonne sur mobile */
+  .insights-grid { grid-template-columns: 1fr; }
+  .insights-grid > .insight-block:last-child { grid-column: auto; }
 }
 
 .menu-toggle { display: none; }

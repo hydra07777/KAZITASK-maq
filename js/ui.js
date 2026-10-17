@@ -6,7 +6,7 @@
 import {
   CATEGORIES, PRIORITIES, STATUSES,
   PRIORITY_CLASS, STATUS_CLASS,
-  computeMetrics, formatDuration, formatDateFr, exceedsSla
+  computeMetrics, formatDuration, formatDateFr, exceedsSla, computeInsights
 } from './metrics.js';
 
 /** Échappement HTML pour éviter XSS. */
@@ -259,6 +259,84 @@ export function toast(message, type = 'success', duration = 2400) {
     el.style.transition = 'all 200ms ease';
     setTimeout(() => el.remove(), 220);
   }, duration);
+}
+
+/* ============================================================
+   Carte "Insights du jour"
+   ============================================================ */
+
+/**
+ * Remplit la carte insights (3 blocs). Cachée si aucune tâche.
+ * @param {Array} tasks
+ * @param {{critique:number, haute:number}} sla
+ */
+export function renderInsights(tasks, sla) {
+  const card = document.getElementById('insightsCard');
+  if (!card) return;
+  if (!tasks || tasks.length === 0) {
+    card.hidden = true;
+    return;
+  }
+  card.hidden = false;
+
+  const insights = computeInsights(tasks, sla);
+
+  // Bloc 1 : barres par catégorie
+  const byCatEl = document.getElementById('insightByCat');
+  if (byCatEl) {
+    byCatEl.innerHTML = insights.byCat.map(row => `
+      <div class="insight-bar-row">
+        <span class="label" title="${escape(row.cat)}">${escape(row.cat)}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(row.pct * 100)}%"></div></div>
+        <span class="count">${row.count}</span>
+      </div>
+    `).join('');
+  }
+
+  // Bloc 2 : tâches à débloquer
+  const todoEl = document.getElementById('insightTodo');
+  if (todoEl) {
+    if (insights.toDo.length === 0) {
+      todoEl.innerHTML = '<li class="insight-list-empty">Tout est terminé, bravo !</li>';
+    } else {
+      todoEl.innerHTML = insights.toDo.map(t => {
+        const cls = t.status === 'Bloqué' ? 'is-haute'
+                   : t.pri === 'Critique' ? 'is-critique'
+                   : t.pri === 'Haute'    ? 'is-haute'
+                   : 'is-encours';
+        return `
+          <li class="${cls}">
+            <span class="title" title="${escape(t.title)}">${escape(t.title)}</span>
+            <span class="pri-pill">${escape(t.pri.slice(0, 3))}</span>
+          </li>
+        `;
+      }).join('');
+    }
+  }
+
+  // Bloc 3 : SLA
+  const slaEl = document.getElementById('insightSla');
+  if (slaEl) {
+    const renderRow = (pri, color) => {
+      const data = insights.sla[pri];
+      if (data.total === 0) {
+        return `
+          <div class="insight-sla-row">
+            <span class="pri-name"><span class="dot" style="background:${color}"></span>${pri === 'critique' ? 'Critique' : 'Haute'}</span>
+            <span class="sla-count sla-ok">0 en cours</span>
+          </div>
+        `;
+      }
+      const cls = data.over > 0 ? 'sla-over' : 'sla-ok';
+      return `
+        <div class="insight-sla-row">
+          <span class="pri-name"><span class="dot" style="background:${color}"></span>${pri === 'critique' ? 'Critique' : 'Haute'}</span>
+          <span class="sla-count ${cls}">${data.over}/${data.total} en retard</span>
+        </div>
+      `;
+    };
+    slaEl.innerHTML = renderRow('critique', '#EF4444') + renderRow('haute', '#F59E0B');
+  }
 }
 
 /* ============================================================

@@ -14,7 +14,8 @@ import {
 import {
   fillSelectOptions, renderMetrics, renderTaskList, updateFilterCounts,
   openModal, closeModal, closeAllModals,
-  fillTaskForm, readTaskForm, setPageDate, toast
+  fillTaskForm, readTaskForm, setPageDate, toast,
+  renderInsights
 } from './ui.js';
 import {
   buildMarkdown, buildCsv, buildJson,
@@ -100,6 +101,7 @@ function renderAll() {
     tasks, state.currentFilter, state.searchQuery, state.settings.sla,
     startEditTask, handleDelete, toggleStatus
   );
+  renderInsights(tasks, state.settings.sla);
 
   if (window.lucide) window.lucide.createIcons();
 }
