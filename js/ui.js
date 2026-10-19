@@ -8,6 +8,7 @@ import {
   PRIORITY_CLASS, STATUS_CLASS,
   computeMetrics, formatDuration, formatDateFr, exceedsSla, computeInsights
 } from './metrics.js';
+import { donutSvg, donutSegmentsSvg, gaugeSvg, barsCompareSvg, scoreColor } from './charts.js';
 
 /** Échappement HTML pour éviter XSS. */
 export function escape(value) {
@@ -58,7 +59,7 @@ export function updateFilterCounts(tasks) {
   }
 }
 
-/** Met à jour les 4 cartes métriques. */
+/** Met à jour les 4 cartes métriques et leurs mini-graphiques SVG. */
 export function renderMetrics(tasks) {
   const m = computeMetrics(tasks);
 
@@ -67,9 +68,8 @@ export function renderMetrics(tasks) {
   document.getElementById('metricOpen').textContent  = `${m.open} en cours`;
   document.getElementById('metricTime').textContent  = formatDuration(m.totalReal);
   document.getElementById('metricEst').textContent   = formatDuration(m.totalEst);
-  document.getElementById('metricResolve').textContent = m.total === 0
-    ? '0%'
-    : Math.round(m.tauxResolution * 100) + '%';
+  const resolvePct = m.total === 0 ? 0 : Math.round(m.tauxResolution * 100);
+  document.getElementById('metricResolve').textContent = `${resolvePct}%`;
 
   const scoreEl = document.getElementById('metricScore');
   const pillEl  = document.getElementById('scorePill');
@@ -83,6 +83,33 @@ export function renderMetrics(tasks) {
     scoreEl.textContent = m.score;
     pillEl.className = 'score-pill ' + m.scoreClass;
     lblEl.textContent = m.scoreLabel;
+  }
+
+  // ---- Mini-graphiques SVG ----
+  // Score : donut simple (0..1), couleur selon seuil
+  const chartScore = document.getElementById('chartScore');
+  if (chartScore) {
+    const pct = m.score === null ? 0 : m.score / 100;
+    chartScore.innerHTML = donutSvg(pct, scoreColor(m.score));
+  }
+  // Tâches : donut 3 segments (terminé/en cours/bloqué)
+  const chartTasks = document.getElementById('chartTasks');
+  if (chartTasks) {
+    chartTasks.innerHTML = donutSegmentsSvg(m.done, m.open, m.blocked);
+  }
+  // Résolution : jauge arc 0..100%
+  const chartResolve = document.getElementById('chartResolve');
+  if (chartResolve) {
+    const color = resolvePct >= 75 ? 'var(--termine)'
+                : resolvePct >= 50 ? 'var(--haute)'
+                : 'var(--critique)';
+    chartResolve.innerHTML = gaugeSvg(resolvePct, color);
+  }
+  // Temps : barres estimé vs réel (max = max(estimé, réel) sinon ~1)
+  const chartTime = document.getElementById('chartTime');
+  if (chartTime) {
+    const max = Math.max(m.totalEst, m.totalReal, 1);
+    chartTime.innerHTML = barsCompareSvg(m.totalEst, m.totalReal, max);
   }
 
   return m;
@@ -246,18 +273,26 @@ export function toast(message, type = 'success', duration = 2400) {
   const stack = document.getElementById('toastStack');
   if (!stack) return;
   const el = document.createElement('div');
-  el.className = `toast ${type}`;
+  el.className = `toast ${type}`;    // entre avec transform: translateX(100%) + opacity: 0
   el.innerHTML = `
     <i data-lucide="${type === 'success' ? 'check-circle-2' : 'alert-circle'}" class="icon"></i>
     <span>${escape(message)}</span>
   `;
   stack.appendChild(el);
   if (window.lucide) window.lucide.createIcons();
+
+  // Frame suivant : on ajoute .is-in pour transitionner (interruptible).
+  // Ne pas utiliser de keyframes ici — un toast ajouté en rafale reprend
+  // sa course sans repartir de zéro.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    el.classList.add('is-in');
+  }));
+
+  // Auto-dismiss avec classe .is-out (sortie gérée par transition CSS)
   setTimeout(() => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateX(100%)';
-    el.style.transition = 'all 200ms ease';
-    setTimeout(() => el.remove(), 220);
+    el.classList.remove('is-in');
+    el.classList.add('is-out');
+    el.addEventListener('transitionend', () => el.remove(), { once: true });
   }, duration);
 }
 

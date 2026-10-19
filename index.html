@@ -109,37 +109,6 @@
 
       <!-- ===== Métriques ===== -->
       <section class="metrics-grid" aria-label="Indicateurs du jour">
-        <div class="metric-card">
-          <div class="metric-head">
-            <span class="metric-label">Tâches</span>
-            <div class="metric-icon"><i data-lucide="check-square" class="icon"></i></div>
-          </div>
-          <div class="metric-value mono" id="metricTotal">0</div>
-          <div class="metric-foot">
-            <span id="metricDone">0 terminées</span> · <span id="metricOpen">0 en cours</span>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-head">
-            <span class="metric-label">Temps travaillé</span>
-            <div class="metric-icon"><i data-lucide="timer" class="icon"></i></div>
-          </div>
-          <div class="metric-value mono" id="metricTime">0h00</div>
-          <div class="metric-foot">
-            Estimé&nbsp;: <span id="metricEst" class="mono">0h00</span>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-head">
-            <span class="metric-label">Taux de résolution</span>
-            <div class="metric-icon"><i data-lucide="target" class="icon"></i></div>
-          </div>
-          <div class="metric-value mono" id="metricResolve">0%</div>
-          <div class="metric-foot">Terminées / total</div>
-        </div>
-
         <div class="metric-card score-card">
           <div class="metric-head">
             <span class="metric-label">Score</span>
@@ -148,7 +117,41 @@
             </span>
           </div>
           <div class="metric-value mono" id="metricScore">—</div>
-          <div class="metric-foot">Calculé sur la formule pondérée (40/30/30)</div>
+          <div class="metric-foot">
+            <span>Calculé sur la formule pondérée (40/30/30)</span>
+            <div class="chart-slot chart-slot--score" id="chartScore" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <div class="metric-card metric-time">
+          <div class="metric-head">
+            <span class="metric-label">Temps travaillé</span>
+          </div>
+          <div class="metric-value mono" id="metricTime">0h00</div>
+          <div class="metric-foot">
+            Estimé&nbsp;: <span id="metricEst" class="mono">0h00</span>
+          </div>
+          <div class="chart-slot chart-slot--bars" id="chartTime" aria-hidden="true"></div>
+        </div>
+
+        <div class="metric-card metric-tasks">
+          <div class="metric-head">
+            <span class="metric-label">Tâches</span>
+            <div class="chart-slot" id="chartTasks" aria-hidden="true"></div>
+          </div>
+          <div class="metric-value mono" id="metricTotal">0</div>
+          <div class="metric-foot">
+            <span id="metricDone">0 terminées</span> · <span id="metricOpen">0 en cours</span>
+          </div>
+        </div>
+
+        <div class="metric-card metric-resolve">
+          <div class="metric-head">
+            <span class="metric-label">Taux de résolution</span>
+            <div class="chart-slot chart-slot--gauge" id="chartResolve" aria-hidden="true"></div>
+          </div>
+          <div class="metric-value mono" id="metricResolve">0%</div>
+          <div class="metric-foot">Terminées / total</div>
         </div>
       </section>
 
