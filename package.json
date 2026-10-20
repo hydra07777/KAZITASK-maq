@@ -1,0 +1,16 @@
+{
+  "name": "kazitask-maquette",
+  "private": true,
+  "version": "0.1.0",
+  "description": "KAZITASK — journal de tâches pour professionnel IT (maquette front-only)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "vite": "^8.3.4"
+  }
+}
